@@ -13,10 +13,7 @@ Created by : <br/>
 **Shruthi Ganapathy (https://github.com/ShruthiGanapathy)** <br/>
 
 Additional contributors include:
-
-- **Vandita Tantry**
-- **Swathi Nair**
-- **Sheetal Pawar**
+**Vandita Tantry**, **Swathi Nair**, **Sheetal Pawar**
 
 Thank you to all the contributors for their hard work and dedication to the project.
 
