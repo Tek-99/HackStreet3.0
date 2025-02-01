@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oil Spill Detection Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e0f7fa; /* Light blue shade */
+        }
+        header {
+            background-color: #0277bd; /* Darker blue */
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        header h1 {
+            display: inline;
+            margin-left: 10px;
+        }
+        nav a {
+            color: white;
+            margin: 0 1rem;
+            text-decoration: none;
+        }
+        main {
+            padding: 2rem;
+        }
+        section {
+            margin-bottom: 2rem;
+            background: #ffffff;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 0.5rem;
+            text-align: center;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        canvas {
+            width: 50% !important;
+            height: 250px !important;
+        }
+        nav a:hover {
+            color: #ffeb3b; /* Highlight links on hover */
+        }
+        .chart-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 style="display: inline; margin-left: 10px;">Oil Spill Detection Dashboard</h1>
+        <nav>
+            <a href="#overview">Overview</a>
+            <a href="#map">Map</a>
+            <a href="#stats">Statistics</a>
+            <a href="#reports">Reports</a>
+            <a href="#analytics">Analytics</a>
+        </nav>
+    </header>
+    <main>
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>Key insights about oil spill detections, including trends and impacts.</p>
+            <p>Total Spills Detected: <strong>150</strong></p>
+            <p>Total Area Affected: <strong>3,200 sq km</strong></p>
+        </section>
+
+        <section id="map">
+            <h2>Interactive Map</h2>
+            <div id="mapid" style="height: 400px;"></div>
+            <input type="date" id="spillDate" />
+            <button onclick="getSpillData()">Get Spill Reports</button>
+        </section>
+
+        <section id="stats">
+            <h2>Statistics</h2>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                <canvas id="chartMonthlySpills"></canvas>
+                <canvas id="chartSpillSize"></canvas>
+            </div>
+        </section>
+
+        <section id="reports">
+            <h2>Reports</h2>
+            <table id="spillReportsTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Size (sq km)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2022-11-05</td>
+                        <td>27.9944024, -90.3500785</td>
+                        <td>200 sq km</td>
+                        <td>Under Investigation</td>
+                    </tr>
+                    <tr>
+                        <td>2023-08-10</td>
+                        <td>28.7617, -89.1918</td>
+                        <td>150 sq km</td>
+                        <td>Containment Efforts Ongoing</td>
+                    </tr>
+                    <tr>
+                        <td>2024-05-20</td>
+                        <td>29.7617, -88.1918</td>
+                        <td>100 sq km</td>
+                        <td>Mitigation Completed</td>
+                    </tr>
+                    <tr>
+                        <td>2024-01-15</td>
+                        <td>27.7622, -90.1919</td>
+                        <td>50 sq km</td>
+                        <td>Monitoring</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analytics">
+            <h2>Analytics</h2>
+            <p>Compare the frequency and impact of oil spills over time:</p>
+            <div class="chart-container">
+                <!-- First Chart: Frequency of Oil Spills over Time -->
+                <div style="flex: 1; margin-right: 1rem;">
+                    <canvas id="chartSpillFrequency" width="600" height="300"></canvas>
+                </div>
+
+                <!-- Second Chart: Spill Size over Time -->
+                <div style="flex: 1;">
+                    <canvas id="chartSpillSizeOverTime" width="600" height="300"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Team Tek Nine-Nine | Data Source: Remote Sensing Imagery</p>
+    </footer>
+
+    <script>
+        if (typeof L === 'undefined') {
+            console.error('Leaflet library not loaded!');
+        } else {
+            console.log('Leaflet library loaded successfully!');
+        }
+
+        var map = L.map('mapid').setView([27.9944024, -90.3500785], 7);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var spillData = [
+            { latitude: 27.9944024, longitude: -90.3500785, date: '2022-11-05', amountSpilled: 200000 },
+            { latitude: 28.7617, longitude: -89.1918, date: '2023-08-10', amountSpilled: 500000 },
+            { latitude: 29.7617, longitude: -88.1918, date: '2024-05-20', amountSpilled: 150000 }
+        ];
+
+        function displaySpillsOnMap(spillReports) {
+            if (map) {
+                map.eachLayer(function(layer) {
+                    if (layer instanceof L.Marker) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                spillReports.forEach(function(report) {
+                    L.marker([report.latitude, report.longitude]).addTo(map)
+                        .bindPopup(`Oil Spill Detected on: ${report.date}<br>Amount Spilled: ${report.amountSpilled} liters`);
+                });
+            } else {
+                console.error('Map not initialized properly.');
+            }
+        }
+
+        async function fetchOilSpillData(date) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const filteredSpills = spillData.filter(spill => spill.date === date);
+                    resolve(filteredSpills);
+                }, 1000);
+            });
+        }
+
+        function getSpillData() {
+            const selectedDate = document.getElementById('spillDate').value;
+            if (!selectedDate) {
+                alert('Please select a valid date.');
+                return;
+            }
+
+            fetchOilSpillData(selectedDate).then(spillReports => {
+                displaySpillReports(spillReports);
+                displaySpillsOnMap(spillReports);
+            });
+        }
+
+        function displaySpillReports(spillReports) {
+            const tableBody = document.querySelector('#spillReportsTable tbody');
+            tableBody.innerHTML = '';
+            spillReports.forEach(function(report) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${report.date}</td><td>${report.latitude}, ${report.longitude}</td><td>${report.amountSpilled}</td><td>Under Investigation</td>`;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Chart for Monthly Oil Spill Frequency
+        new Chart(document.getElementById('chartMonthlySpills'), {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Monthly Oil Spills',
+                    data: [5, 10, 7, 15, 8, 12],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+
+        // Chart for Frequency of Oil Spills over Time
+        new Chart(document.getElementById('chartSpillFrequency'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Frequency of Oil Spills',
+                    data: [2, 4, 5, 6, 7, 3],
+                    fill: false,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                }
+            }
+        });
+
+        // Chart for Spill Size over Time
+        new Chart(document.getElementById('chartSpillSizeOverTime'), {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Average Spill Size (sq km)',
+                    data: [100, 200, 150, 300, 120, 180],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
