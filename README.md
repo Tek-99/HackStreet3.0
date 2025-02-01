@@ -22,9 +22,17 @@ Thank you to all the contributors for their hard work and dedication to the proj
 
 ## **FAQ**
 
-**Q:** What is Project?
+**Q:** What is Oil Spill Detection?
 
-**A:** Project that does something useful.
+**A:** Oil Spill Detection allows us to check in real time whetherthere has been an oil spill in a certain area or not.
+
+**Q:** How do we know where to check for oil spills?
+
+**A:** Oil Spill Detection is done in areas with detected anomalies.
+
+**Q:** What are detected anomalies?
+
+**A:** Detected anomalies are unusual behaviours exhibited by ships or other marine vehicles, like sudden change in speed, direction or course. These unusual changes are flagged as anomalies by the system.
 
 ## **Changelog**
 
